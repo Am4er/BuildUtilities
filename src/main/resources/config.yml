@@ -1,0 +1,4 @@
+barrier-ghost:
+  radius: 6
+  refresh-interval: 20
+  persist: true

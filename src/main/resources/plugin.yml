@@ -1,0 +1,27 @@
+name: CustomMechanics
+version: '${project.version}'
+main: com.buildserver.custommechanics.CustomMechanics
+description: Custom mechanics for builders
+api-version: '26.1'
+authors: [Build-Server]
+
+commands:
+  builder:
+    description: Builder utilities - tool menu and barrier ghost mode.
+    usage: /builder <tools|ghost>
+    permission: custommechanics.builder
+    aliases: [bd]
+
+permissions:
+  custommechanics.builder:
+    description: Access to the /builder command.
+    default: op
+    children:
+      custommechanics.tools: true
+      custommechanics.ghost: true
+  custommechanics.tools:
+    description: Open the builder tool menu and take items from it.
+    default: op
+  custommechanics.ghost:
+    description: Toggle walking through barrier blocks.
+    default: op
