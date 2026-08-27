@@ -1,27 +1,54 @@
-name: CustomMechanics
+name: BuildUtilities
 version: '${project.version}'
-main: com.buildserver.custommechanics.CustomMechanics
-description: Custom mechanics for builders
+main: com.am4er.buildutilities.BuildUtilities
+description: Utilities for builders
 api-version: '26.1'
-authors: [Build-Server]
+authors: [Am4er]
 
 commands:
   builder:
-    description: Builder utilities - tool menu and barrier ghost mode.
-    usage: /builder <tools|ghost>
-    permission: custommechanics.builder
+    description: Builder tool menu, barrier ghost mode and personal view settings.
+    usage: /builder help
+    permission: buildutilities.builder
     aliases: [bd]
 
 permissions:
-  custommechanics.builder:
+  buildutilities.builder:
     description: Access to the /builder command.
     default: op
     children:
-      custommechanics.tools: true
-      custommechanics.ghost: true
-  custommechanics.tools:
+      buildutilities.tools: true
+      buildutilities.ghost: true
+      buildutilities.measure: true
+      buildutilities.time: true
+      buildutilities.weather: true
+      buildutilities.bright: true
+      buildutilities.hide: true
+      buildutilities.speed: true
+  buildutilities.tools:
     description: Open the builder tool menu and take items from it.
     default: op
-  custommechanics.ghost:
-    description: Toggle walking through barrier blocks.
+  buildutilities.ghost:
+    description: Walk through barrier blocks.
+    default: op
+  buildutilities.measure:
+    description: Use the measuring tape.
+    default: op
+  buildutilities.time:
+    description: Lock your own sky to a fixed time.
+    default: op
+  buildutilities.weather:
+    description: Pick your own weather.
+    default: op
+  buildutilities.bright:
+    description: Light up dark interiors for yourself.
+    default: op
+  buildutilities.hide:
+    description: Hide every other player from your view.
+    default: op
+  buildutilities.speed:
+    description: Change your fly speed.
+    default: op
+  buildutilities.reload:
+    description: Reload config.yml with /builder reload.
     default: op

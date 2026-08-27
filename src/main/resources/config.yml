@@ -1,4 +1,16 @@
+# BuildUtilities
+# Apply changes without a restart using /builder reload
+
 barrier-ghost:
+
+  # How far around a builder barriers are hidden, in blocks.
+  # The scan is a cube: 6 covers 2197 blocks, 12 covers 15625. Keep it modest.
   radius: 6
-  refresh-interval: 20
+
+  # Ticks between safety sweeps. Walking and barrier edits already trigger an
+  # update, so this only catches bulk changes such as a WorldEdit paste.
+  # 20 ticks is one second.
+  refresh-interval: 40
+
+  # Remember who left ghost mode on and switch it back on when they rejoin.
   persist: true

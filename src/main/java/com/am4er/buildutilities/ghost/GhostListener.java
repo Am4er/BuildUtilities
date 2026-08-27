@@ -1,6 +1,5 @@
-package com.buildserver.custommechanics.ghost;
+package com.am4er.buildutilities.ghost;
 
-import com.buildserver.custommechanics.CustomMechanics;
 import io.papermc.paper.event.player.PlayerFailMoveEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -11,47 +10,46 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.plugin.Plugin;
 
-public final class BarrierGhostListener implements Listener {
+public final class GhostListener implements Listener {
 
-    private final CustomMechanics plugin;
-    private final BarrierGhostManager manager;
+    private final Plugin plugin;
+    private final GhostService ghosts;
 
-    public BarrierGhostListener(CustomMechanics plugin, BarrierGhostManager manager) {
+    public GhostListener(Plugin plugin, GhostService ghosts) {
         this.plugin = plugin;
-        this.manager = manager;
+        this.ghosts = ghosts;
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onMove(PlayerMoveEvent event) {
         if (event.hasChangedBlock()) {
-            manager.refreshIfEnabled(event.getPlayer(), false);
+            ghosts.moved(event.getPlayer());
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onTeleport(PlayerTeleportEvent event) {
-        nextTick(event.getPlayer(), player -> manager.refreshIfEnabled(player, true));
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onWorldChange(PlayerChangedWorldEvent event) {
-        manager.handleWorldChange(event.getPlayer());
+        afterTick(event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onRespawn(PlayerRespawnEvent event) {
-        nextTick(event.getPlayer(), player -> manager.refreshIfEnabled(player, true));
+        afterTick(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onWorldChange(PlayerChangedWorldEvent event) {
+        ghosts.viewReloaded(event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onFailMove(PlayerFailMoveEvent event) {
-        if (!manager.isEnabled(event.getPlayer())) {
+        if (!ghosts.isOn(event.getPlayer())) {
             return;
         }
         PlayerFailMoveEvent.FailReason reason = event.getFailReason();
@@ -62,34 +60,24 @@ public final class BarrierGhostListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onJoin(PlayerJoinEvent event) {
-        manager.handleJoin(event.getPlayer());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onQuit(PlayerQuitEvent event) {
-        manager.handleQuit(event.getPlayer());
-    }
-
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onBlockPlace(BlockPlaceEvent event) {
+    public void onPlace(BlockPlaceEvent event) {
         if (event.getBlockPlaced().getType() == Material.BARRIER) {
-            manager.refreshNear(event.getBlockPlaced().getLocation());
+            ghosts.nudgeAround(event.getBlockPlaced().getLocation());
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onBlockBreak(BlockBreakEvent event) {
+    public void onBreak(BlockBreakEvent event) {
         if (event.getBlock().getType() == Material.BARRIER) {
-            manager.refreshNear(event.getBlock().getLocation());
+            ghosts.nudgeAround(event.getBlock().getLocation());
         }
     }
 
-    private void nextTick(Player player, java.util.function.Consumer<Player> action) {
+    private void afterTick(Player p) {
         Bukkit.getScheduler().runTask(plugin, () -> {
-            if (player.isOnline()) {
-                action.accept(player);
+            if (p.isOnline()) {
+                ghosts.viewReloaded(p);
             }
         });
     }

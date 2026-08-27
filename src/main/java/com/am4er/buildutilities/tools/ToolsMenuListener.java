@@ -1,7 +1,7 @@
-package com.buildserver.custommechanics.tools;
+package com.am4er.buildutilities.tools;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import com.am4er.buildutilities.Msg;
+import com.am4er.buildutilities.Perms;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,15 +14,10 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Map;
 
 public final class ToolsMenuListener implements Listener {
-
-    public static final String USE_PERMISSION = "custommechanics.tools";
-
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        if (!(event.getInventory().getHolder() instanceof ToolsMenu menu)) {
-            return;
-        }
-        if (!(event.getWhoClicked() instanceof Player player)) {
+        if (!(event.getInventory().getHolder() instanceof ToolsMenu menu)
+                || !(event.getWhoClicked() instanceof Player p)) {
             return;
         }
 
@@ -36,18 +31,16 @@ public final class ToolsMenuListener implements Listener {
 
         event.setCancelled(true);
 
-        if (!player.hasPermission(USE_PERMISSION)) {
-            player.closeInventory();
-            player.sendMessage(Component.text("You no longer have permission to use the builder tools.",
-                    NamedTextColor.RED));
+        if (!p.hasPermission(Perms.TOOLS)) {
+            p.closeInventory();
+            Msg.bad(p, "You no longer have permission to use the builder tools.");
             return;
         }
 
         int slot = event.getRawSlot();
-
-        if (menu.isPreviousButton(slot) || menu.isNextButton(slot)) {
+        if (menu.isPrevButton(slot) || menu.isNextButton(slot)) {
             if (menu.turnPage(menu.isNextButton(slot) ? 1 : -1)) {
-                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.4f, 1.2f);
+                p.playSound(p, Sound.UI_BUTTON_CLICK, 0.4f, 1.2f);
             }
             return;
         }
@@ -57,16 +50,12 @@ public final class ToolsMenuListener implements Listener {
             return;
         }
 
-        ItemStack given = tool.give(event.isShiftClick());
-        Map<Integer, ItemStack> leftover = player.getInventory().addItem(given);
-        for (ItemStack overflow : leftover.values()) {
-            player.getWorld().dropItemNaturally(player.getLocation(), overflow);
+        Map<Integer, ItemStack> spare = p.getInventory().addItem(tool.give(event.isShiftClick()));
+        if (!spare.isEmpty()) {
+            spare.values().forEach(over -> p.getWorld().dropItemNaturally(p.getLocation(), over));
+            Msg.warn(p, "Inventory full, the rest is at your feet.");
         }
-        if (!leftover.isEmpty()) {
-            player.sendMessage(Component.text("Your inventory was full - the rest was dropped at your feet.",
-                    NamedTextColor.YELLOW));
-        }
-        player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.6f, 1.6f);
+        p.playSound(p, Sound.ENTITY_ITEM_PICKUP, 0.6f, 1.6f);
     }
 
     @EventHandler
